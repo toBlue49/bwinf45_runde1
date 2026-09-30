@@ -2,6 +2,7 @@
 #include <fstream>
 #include "bColor.hpp"
 #include <vector>
+#include <string>
 
 using namespace std;
 
@@ -19,6 +20,7 @@ struct pizza{
 };
 
 #define ERR_INVALIDARGS 1;
+#define ERR_COULDNTOPENFILE 2;
 
 int main(int argc, char* argv[]) {
     bColor bcolor = bColor(); // ANSI Codes für Farbigen Text
@@ -30,16 +32,27 @@ int main(int argc, char* argv[]) {
         return ERR_INVALIDARGS;
     }
     
-    string filepath = argv[1] + newl; // Lese filepath von argv
+    string filepath = argv[1]; // Lese filepath von argv
     cout << "Dateipfad: " << bcolor.cyan << filepath << newl; //Print
     
-    // Speichert den Dateiinhalt in ein Array; Ein Element pro Zeile.
-    ifstream File(filepath);
+    // Lese Datei ein.
+    ifstream file(filepath);
     
-    while (getline(MyReadFile, myText)) {
-        // Output the text from the file
-        cout << myText;
+    //Konnte Datei nicht öffnen
+    if (!file.is_open()) {
+        cout << bcolor.red << "[2] Datei konnte nicht geöffnet werden." << newl;
+        return ERR_COULDNTOPENFILE;
     }
+    
+    // Speichert den Dateiinhalt in ein Vector; Ein Element pro Zeile.
+    string this_line;
+    vector<string> lines; //Linen speichernder Vector
+    while (getline(file, this_line)) {
+        lines.insert(lines.end(), this_line);
+    }
+    this_line = ""; //Clear
+    
+    //Loop over vector
     
     return 0;
 }
