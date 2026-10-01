@@ -1,3 +1,5 @@
+#include <bits/stdc++.h>
+
 #include <iostream>
 #include <fstream>
 #include "bColor.hpp"
@@ -7,8 +9,8 @@
 using namespace std;
 
 struct point{ //2D Punkt
-    int x;
-    int y;
+    double x;
+    double y;
 };
 
 struct pizza{
@@ -22,9 +24,32 @@ struct pizza{
 #define ERR_INVALIDARGS 1;
 #define ERR_COULDNTOPENFILE 2;
 
+bColor bcolor = bColor(); // ANSI Codes für Farbigen Text
+string newl = bcolor.reset + "\n"; // newl "new line" setzt Farbe zurück und erstellt eine neue Zeile
+
+vector<string> split_string_by_space(string str_in) {
+    stringstream str_in_stream(str_in);
+    string word;
+    
+    vector<string> out_vector;
+    
+    while (str_in_stream >> word) {
+        out_vector.insert(out_vector.end(), word);
+    }
+    
+    return out_vector;
+}
+
+//Nimmt zwei Strings und convertiert diese zu einem point
+point string_to_point(string x, string y) {
+    point out;
+    out.x = stod(x);
+    out.y = stod(y);
+    
+    return out;
+}
+
 int main(int argc, char* argv[]) {
-    bColor bcolor = bColor(); // ANSI Codes für Farbigen Text
-    string newl = bcolor.reset + "\n"; // newl "new line" setzt Farbe zurück und erstellt eine neue Zeile
     
     //Hat falsche Anzahl an Argumenten
     if (argc != 2) {
@@ -52,7 +77,37 @@ int main(int argc, char* argv[]) {
     }
     this_line = ""; //Clear
     
-    //Loop over vector
+    //Splittet für jedes Leerzeichen die Zeilen auf
+    vector<vector<string>> lines_split;
+    for (auto &i: lines) {
+        lines_split.insert(lines_split.end(), split_string_by_space(i));
+    }
+    lines = {}; //Clear
+    
+    //Pizza Struct
+    pizza pizza;
+    pizza.radius = stoi(lines_split[0][0]);
+    cout << "Pizza radius: " << pizza.radius << newl;
+    pizza.amount_belag1 = stoi(lines_split[1][0]);
+    
+    //Belag 1
+    for (int i = 0; i < pizza.amount_belag1; i++) {
+        int line = 2 + i; //"n" in dem Material
+        int v_size = lines_split[line].size(); //Größe des Vectors der Zeile
+        
+        for (int j = 1; j < v_size; j += 2) {
+            string str_x = lines_split[line][j];
+            string str_y = lines_split[line][j+1];
+            
+            pizza.points_belag1.insert(pizza.points_belag1.end(), string_to_point(str_x, str_y));
+        }
+    }
+    
+    //debug
+    for (auto &i: pizza.points_belag1) {
+        cout << "(" << i.x << ", " <<i.y << ")" << newl;
+    }
+    
     
     return 0;
-}
+};
