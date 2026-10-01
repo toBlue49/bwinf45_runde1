@@ -49,8 +49,16 @@ point string_to_point(string x, string y) {
     return out;
 }
 
+double rad_to_deg(double rad) {
+    return rad * (3.1415926/180.0);
+}
+
+// Returns value for tan(deg°)*x = y
+double eval_y_linear_func(double x, int deg) {
+    return tan(rad_to_deg(deg)) * x;
+}
+
 int main(int argc, char* argv[]) {
-    
     //Hat falsche Anzahl an Argumenten
     if (argc != 2) {
         cout << bcolor.red << "[1] Falsche Anzahl an Argumenten.\n Syntax: [PROGRAM] [DATEIPFAD]" << newl;
@@ -110,4 +118,4 @@ int main(int argc, char* argv[]) {
     
     
     return 0;
-};
+}
