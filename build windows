@@ -1,0 +1,1 @@
+x86_64-w64-mingw32-g++ -fdiagnostics-color=always -g code.cpp -o bin.exe

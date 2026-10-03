@@ -13,7 +13,6 @@
 # Compiled Dynamic libraries
 *.so
 *.dylib
-*.dll
 *.so.*
 
 # Temporary files
@@ -24,9 +23,6 @@
 
 # debug information files
 *.dwo
-
-# Build binaries
-bin/
 
 #VS Code
 .vscode/
