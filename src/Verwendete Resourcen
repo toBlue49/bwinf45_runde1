@@ -7,3 +7,6 @@ J1_HalbUndHalb:
     [2]https://www.geeksforgeeks.org/cpp/command-line-arguments-in-cpp/
     [3]https://www.geeksforgeeks.org/cpp/how-to-split-string-by-delimiter-in-cpp/
     [4]https://stackoverflow.com/questions/6286276/conversion-from-radians-to-degrees
+
+Windows DLLs:
+    https://github.com/niXman/mingw-builds-binaries/releases (C++ Libraries von mingw-w64)
