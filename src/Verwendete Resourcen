@@ -8,5 +8,9 @@ J1_HalbUndHalb:
     [3]https://www.geeksforgeeks.org/cpp/how-to-split-string-by-delimiter-in-cpp/
     [4]https://stackoverflow.com/questions/6286276/conversion-from-radians-to-degrees
 
+J2_Spendenaktion:
+    [1]https://www.w3schools.com/cpp/cpp_arrays.asp
+    [2]https://www.geeksforgeeks.org/cpp/how-to-convert-an-array-to-a-vector-in-cpp/
+
 Windows DLLs:
     https://github.com/niXman/mingw-builds-binaries/releases (C++ Libraries von mingw-w64)
