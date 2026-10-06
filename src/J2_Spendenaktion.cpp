@@ -19,7 +19,7 @@ struct projekt {
     int stimmen; //Anzahl der Stimmen
     int geld; //Wie viel Geld mit den Stimmen eingenommen wird
     int schenken_amount = 0; //Wie viel das Projekt schenken wird
-    string schenken_name; //Name des Projektes an das dieses Stimmen schenken will.
+    string schenken_name = ""; //Name des Projektes an das dieses Stimmen schenken will.
 };
 
 //Aus J1
@@ -34,6 +34,25 @@ vector<string> split_string_by_space(string str_in) {
     }
     
     return out_vector;
+}
+
+//Wendet schenken_amount auf das gegebene Projekt an. Setzt auch schenken_name zurück und gibt immer 0 zurück
+int schenken_anwenden(projekt* besch_proj_ptr, projekt* schnk_proj_ptr) {
+    //vom schenkenden Projekt Stimmen abziehen
+    schnk_proj_ptr->stimmen -= schnk_proj_ptr->schenken_amount;
+    
+    //zum beschenkten Projekt Stimmen hinzufügen
+    besch_proj_ptr->stimmen += schnk_proj_ptr->schenken_amount;
+    
+    cout << "| Schenkendes Projekt: " << schnk_proj_ptr->name << " schenken_amount: " << schnk_proj_ptr->schenken_amount << endl;
+    
+    //schenken_amount zurücksetzten
+    schnk_proj_ptr->schenken_amount = 0;
+    
+    //schenken_name zurücksetzten
+    schnk_proj_ptr->schenken_name = "";
+    
+    return 0;
 }
 
 //Gibt zurück wie oft num durch 2 ganz geteilt werden kann.
@@ -155,6 +174,8 @@ int main(int argc, char* argv[]) {
                     if (mehr_geld) {
                         cout << "wow" << endl;
                         //Speichere in schenken_amount und schenken_name
+                        schenkendes_projekt.schenken_amount = s;
+                        schenkendes_projekt.schenken_name = beschenktes_projekt.name;
                     }
                     
                     geld_alle_projekte = 0;
@@ -164,9 +185,25 @@ int main(int argc, char* argv[]) {
                 }
             }
             
+            cout << "---------" << endl;
+        }
+        
+        //Scheinbar wird das schenken nicht richtig gesetzt. bestimmt weil ich einen pointer brauche. mal schauen.
+        //Anwenden des Schenkens erst nach allen Loops
+        projekt* projekt_ptr;
+        for (int _index = 0; _index < (sizeof(projekt_array)/sizeof(*projekt_array)); _index++) {
+            cout << projekt_array[_index].schenken_name << endl;
             //Wende gespeicherte schenken_amount und schenken_name an.
             //Wahrscheinlich muss erst geschaut werden welcher Name (buchstabe) zu welchem index bzw. welchem Projekt eigentlich passt.
-            cout << "---------" << endl;
+            if (projekt_array[_index].schenken_name != "") {
+                for (int i = 0;  i < (sizeof(projekt_array)/sizeof(*projekt_array)); i++) {
+                    if (projekt_array[i].name == projekt_array[_index].schenken_name) {
+                        projekt_ptr = &projekt_array[i];
+                    }
+                }
+                
+                schenken_anwenden(projekt_ptr, &projekt_array[_index]);
+            }
         }
         
         irgendeine_variable++;
