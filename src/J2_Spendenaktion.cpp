@@ -44,7 +44,7 @@ int schenken_anwenden(projekt* besch_proj_ptr, projekt* schnk_proj_ptr) {
     //zum beschenkten Projekt Stimmen hinzufügen
     besch_proj_ptr->stimmen += schnk_proj_ptr->schenken_amount;
     
-    cout << "| Schenkendes Projekt: " << schnk_proj_ptr->name << " schenken_amount: " << schnk_proj_ptr->schenken_amount << endl;
+    std::cout << "| Schenkendes Projekt: " << schnk_proj_ptr->name << " schenken_amount: " << schnk_proj_ptr->schenken_amount << endl;
     
     //schenken_amount zurücksetzten
     schnk_proj_ptr->schenken_amount = 0;
@@ -72,10 +72,10 @@ bool haben_mit_spenden_mehr_geld(projekt besch_proj, projekt schnk_proj, int bes
     int besch_geld = get_divide_count(besch_neue_stimmen) * 100;
     int schnk_geld = get_divide_count(schnk_neue_stimmen) * 100;
     
-    if (besch_geld <= besch_proj.geld) { //Beschenktes Projekt; Neuer Wert kleiner oder gleich.
+    if (besch_geld < besch_proj.geld) { //Beschenktes Projekt; Neuer Wert kleiner oder gleich.
         return false;
     }
-    if (schnk_geld <= schnk_proj.geld) {  //Schenkendes Projekt; Neuer Wert kleiner oder gleich.
+    if (schnk_geld < schnk_proj.geld) {  //Schenkendes Projekt; Neuer Wert kleiner oder gleich.
         return false;
     }
     
@@ -88,19 +88,19 @@ int main(int argc, char* argv[]) {
     
     //Hat falsche Anzahl an Argumenten
     if (argc != 2) {
-        cout << bcolor.red << "[1] Falsche Anzahl an Argumenten.\n Syntax: [PROGRAM] [DATEIPFAD]" << newl;
+        std::cout << bcolor.red << "[1] Falsche Anzahl an Argumenten.\n Syntax: [PROGRAM] [DATEIPFAD]" << newl;
         return ERR_INVALIDARGS;
     }
     
     string filepath = argv[1]; // Lese filepath von argv
-    cout << "Dateipfad: " << bcolor.cyan << filepath << newl; //Print
+    std::cout << "Dateipfad: " << bcolor.cyan << filepath << newl; //Print
     
     // Lese Datei ein.
     ifstream file(filepath);
     
     //Konnte Datei nicht öffnen
     if (!file.is_open()) {
-        cout << bcolor.red << "[2] Datei konnte nicht geöffnet werden." << newl;
+        std::cout << bcolor.red << "[2] Datei konnte nicht geöffnet werden." << newl;
         return ERR_COULDNTOPENFILE;
     }
     
@@ -132,18 +132,19 @@ int main(int argc, char* argv[]) {
         
         //Setzte Geld
         projekt_array[i].geld = get_divide_count(projekt_array[i].stimmen) * 100; //Setzte Geld auf die Anzahl die geteilt werden konnte * 100
-        cout << projekt_array[i].name << "; " << projekt_array[i].geld << newl;
+        std::cout << projekt_array[i].name << "; " << projekt_array[i].geld << newl;
     }
     
     int irgendeine_variable = 0;
     int geld_alle_projekte = 0; //Geld aller Projekte
+    int letzte_geld_alle_projekte = 0; //Geld aller Projekte der vorherigen Iteration
     for (auto i: projekt_array) {
         geld_alle_projekte += i.geld;
     }
     
     //Stimmen Algorithmus
     //For Loop verwenden Index, um auf die original Variable zugreifen zu können. Ich bin mir sicher, man kann das auch mit einem Pointer machen, ich bin mit denen aber noch zu unsicher.
-    while (irgendeine_variable < 1) { //Braucht noch irgend ein Limit
+    while (irgendeine_variable < 10) { //Braucht noch irgend ein Limit
         for (int schenkendes_projekt_index = 0; schenkendes_projekt_index < (sizeof(projekt_array)/sizeof(*projekt_array)); schenkendes_projekt_index++) { //Für alle Projekte
             projekt schenkendes_projekt = projekt_array[schenkendes_projekt_index];
             
@@ -162,8 +163,8 @@ int main(int argc, char* argv[]) {
                 
                 //Es werden "s" Stimmen von "schenkendes_projekt" and "beschenktes_projekt" gespendet
                 for (int s = 1; s < schenkendes_projekt.stimmen; s++) { //Für alle verfügbaren Stimmen von dem Projekt was spendet (schenkendes_projekt).
-                    cout << schenkendes_projekt.name << "->" << beschenktes_projekt.name << " ";
-                    cout << bcolor.yellow << to_string(s) << newl;
+                    // std::cout << schenkendes_projekt.name << "->" << beschenktes_projekt.name << " ";
+                    // std::cout << bcolor.yellow << to_string(s) << newl;
                     
                     int beschenktes_projekt_neue_stimmen = beschenktes_projekt.stimmen + s; //Beschenktes Projekt kriegt plus
                     int schenkendes_projekt_neue_stimmen = schenkendes_projekt.stimmen - s; //Schenkendes Projekt kriegt minus
@@ -172,27 +173,20 @@ int main(int argc, char* argv[]) {
                                                                 beschenktes_projekt_neue_stimmen, schenkendes_projekt_neue_stimmen);
                     
                     if (mehr_geld) {
-                        cout << "wow" << endl;
                         //Speichere in schenken_amount und schenken_name
-                        schenkendes_projekt.schenken_amount = s;
-                        schenkendes_projekt.schenken_name = beschenktes_projekt.name;
+                        projekt_array[schenkendes_projekt_index].schenken_amount = s;
+                        projekt_array[schenkendes_projekt_index].schenken_name = beschenktes_projekt.name;
                     }
                     
-                    geld_alle_projekte = 0;
-                    for (auto i: projekt_array) {
-                        geld_alle_projekte += i.geld;
-                    }
                 }
             }
-            
-            cout << "---------" << endl;
         }
         
-        //Scheinbar wird das schenken nicht richtig gesetzt. bestimmt weil ich einen pointer brauche. mal schauen.
+        //Scheinbar wird das schenken nicht richtig gesetzt. bestimmt weil ich einen pointer brauche. mal schauen
         //Anwenden des Schenkens erst nach allen Loops
         projekt* projekt_ptr;
         for (int _index = 0; _index < (sizeof(projekt_array)/sizeof(*projekt_array)); _index++) {
-            cout << projekt_array[_index].schenken_name << endl;
+            std::cout << projekt_array[_index].schenken_name << endl;
             //Wende gespeicherte schenken_amount und schenken_name an.
             //Wahrscheinlich muss erst geschaut werden welcher Name (buchstabe) zu welchem index bzw. welchem Projekt eigentlich passt.
             if (projekt_array[_index].schenken_name != "") {
@@ -206,10 +200,20 @@ int main(int argc, char* argv[]) {
             }
         }
         
+        letzte_geld_alle_projekte = geld_alle_projekte;
+        geld_alle_projekte = 0;
+        for (auto i: projekt_array) {
+            geld_alle_projekte += i.geld;
+        }
+        
+        std::cout << "##### ITERATION RESULTS #####" << endl;
+        std::cout << projekt_array[0].stimmen << endl;
+        std::cout << projekt_array[1].stimmen << endl;
+        std::cout << projekt_array[2].stimmen << endl;
+        std::cout << "letzte geld " << letzte_geld_alle_projekte << endl;
+        std::cout << "       geld " << geld_alle_projekte << endl;
+        std::cout << "##### ITERATION RESULTS #####" << endl;
+        
         irgendeine_variable++;
     }
-    
-    cout << projekt_array[0].stimmen << endl;
-    cout << projekt_array[1].stimmen << endl;
-    cout << projekt_array[2].stimmen << endl;
 }
