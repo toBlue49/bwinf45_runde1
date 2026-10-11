@@ -16,6 +16,7 @@ string newl = bcolor.reset + "\n"; // newl "new line" setzt Farbe zurück und er
 //Struct für ein Projekt
 struct projekt {
     string name; //Name (A, B, C, etc.) des Projektes
+    int original_stimmen; //Anzahl der Stimmen vor dem Tauschen
     int stimmen; //Anzahl der Stimmen
     int geld; //Wie viel Geld mit den Stimmen eingenommen wird
     int schenken_amount = 0; //Wie viel das Projekt schenken wird
@@ -36,6 +37,17 @@ vector<string> split_string_by_space(string str_in) {
     return out_vector;
 }
 
+//Gibt zurück wie oft num durch 2 ganz geteilt werden kann.
+int get_divide_count(int num) {
+    int div_counter = 0; //Zählt Teilungen
+    while (num % 2 == 0) { //Teile current durch 2 und erhöhe div_counter, bis current mod 2 nicht mehr 0 ergibt.
+        num /= 2;
+        div_counter++;
+    }
+    
+    return div_counter;
+}
+
 //Wendet schenken_amount auf das gegebene Projekt an. Setzt auch schenken_name zurück und gibt immer 0 zurück
 int schenken_anwenden(projekt* besch_proj_ptr, projekt* schnk_proj_ptr) {
     //vom schenkenden Projekt Stimmen abziehen
@@ -52,18 +64,10 @@ int schenken_anwenden(projekt* besch_proj_ptr, projekt* schnk_proj_ptr) {
     //schenken_name zurücksetzten
     schnk_proj_ptr->schenken_name = "";
     
+    //Geld neu berechnen (ich hab hier 2 tage gehangen, bis mir eingefallen ist, dass ich das geld auch neuberechnen muss)
+    besch_proj_ptr->geld = get_divide_count(besch_proj_ptr->stimmen) * 100;
+    schnk_proj_ptr->geld = get_divide_count(schnk_proj_ptr->stimmen) * 100;
     return 0;
-}
-
-//Gibt zurück wie oft num durch 2 ganz geteilt werden kann.
-int get_divide_count(int num) {
-    int div_counter = 0; //Zählt Teilungen
-    while (num % 2 == 0) { //Teile current durch 2 und erhöhe div_counter, bis current mod 2 nicht mehr 0 ergibt.
-        num /= 2;
-        div_counter++;
-    }
-    
-    return div_counter;
 }
 
 //Gibt true zurück wenn sich die Geldwerte von beiden Projekten erhöht hat mit den neuen Stimmen, verglichen mit den Alten.
@@ -72,10 +76,10 @@ bool haben_mit_spenden_mehr_geld(projekt besch_proj, projekt schnk_proj, int bes
     int besch_geld = get_divide_count(besch_neue_stimmen) * 100;
     int schnk_geld = get_divide_count(schnk_neue_stimmen) * 100;
     
-    if (besch_geld < besch_proj.geld) { //Beschenktes Projekt; Neuer Wert kleiner oder gleich.
+    if (besch_geld <= besch_proj.geld) { //Beschenktes Projekt; Neuer Wert kleiner oder gleich.
         return false;
     }
-    if (schnk_geld < schnk_proj.geld) {  //Schenkendes Projekt; Neuer Wert kleiner oder gleich.
+    if (schnk_geld <= schnk_proj.geld) {  //Schenkendes Projekt; Neuer Wert kleiner oder gleich.
         return false;
     }
     
@@ -135,16 +139,18 @@ int main(int argc, char* argv[]) {
         std::cout << projekt_array[i].name << "; " << projekt_array[i].geld << newl;
     }
     
-    int irgendeine_variable = 0;
     int geld_alle_projekte = 0; //Geld aller Projekte
-    int letzte_geld_alle_projekte = 0; //Geld aller Projekte der vorherigen Iteration
-    for (auto i: projekt_array) {
-        geld_alle_projekte += i.geld;
+    int letzte_geld_alle_projekte = -1; //Geld aller Projekte der vorherigen Iteration
+    bool break_this_iteration = false; //Soll diese Iteration übersprungen werden?
+    for (int i = 0; i < (sizeof(projekt_array)/sizeof(*projekt_array)); i++) {
+        geld_alle_projekte += projekt_array[i].geld;
+        
+        projekt_array[i].original_stimmen = projekt_array[i].stimmen; //Speichere Stimmen vor dem Schenken 
     }
     
     //Stimmen Algorithmus
     //For Loop verwenden Index, um auf die original Variable zugreifen zu können. Ich bin mir sicher, man kann das auch mit einem Pointer machen, ich bin mit denen aber noch zu unsicher.
-    while (irgendeine_variable < 10) { //Braucht noch irgend ein Limit
+    while (geld_alle_projekte > letzte_geld_alle_projekte) { //Wenn das Geld gleich ist, wie bei der vorherigen Iteration, dann sind wir fertig.
         for (int schenkendes_projekt_index = 0; schenkendes_projekt_index < (sizeof(projekt_array)/sizeof(*projekt_array)); schenkendes_projekt_index++) { //Für alle Projekte
             projekt schenkendes_projekt = projekt_array[schenkendes_projekt_index];
             
@@ -176,9 +182,18 @@ int main(int argc, char* argv[]) {
                         //Speichere in schenken_amount und schenken_name
                         projekt_array[schenkendes_projekt_index].schenken_amount = s;
                         projekt_array[schenkendes_projekt_index].schenken_name = beschenktes_projekt.name;
+                        break_this_iteration = true;
                     }
                     
                 }
+                
+                if (break_this_iteration) {
+                    break;
+                }
+            }
+            
+            if (break_this_iteration) {
+                break;
             }
         }
         
@@ -214,6 +229,8 @@ int main(int argc, char* argv[]) {
         std::cout << "       geld " << geld_alle_projekte << endl;
         std::cout << "##### ITERATION RESULTS #####" << endl;
         
-        irgendeine_variable++;
+        break_this_iteration = false;
     }
+    
+    //Muss noch Datei ausgeben
 }
