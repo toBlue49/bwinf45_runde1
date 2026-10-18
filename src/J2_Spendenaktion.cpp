@@ -16,11 +16,16 @@ string newl = bcolor.reset + "\n"; // newl "new line" setzt Farbe zurück und er
 //Struct für ein Projekt
 struct projekt {
     string name; //Name (A, B, C, etc.) des Projektes
-    int original_stimmen; //Anzahl der Stimmen vor dem Tauschen
     int stimmen; //Anzahl der Stimmen
     int geld; //Wie viel Geld mit den Stimmen eingenommen wird
     int schenken_amount = 0; //Wie viel das Projekt schenken wird
     string schenken_name = ""; //Name des Projektes an das dieses Stimmen schenken will.
+};
+
+struct schenken {
+    string schenkend = ""; //Von welchem Projekt geschenkt wird
+    string beschenkt = ""; //Welches Projekt die Stimmen erhält
+    int amount = 0; //Wie viele Stimmen
 };
 
 //Aus J1
@@ -91,13 +96,15 @@ int main(int argc, char* argv[]) {
     // Einlesen der Datei kopiert aus J1
     
     //Hat falsche Anzahl an Argumenten
-    if (argc != 2) {
-        std::cout << bcolor.red << "[1] Falsche Anzahl an Argumenten.\n Syntax: [PROGRAM] [DATEIPFAD]" << newl;
+    if (argc != 3) {
+        std::cout << bcolor.red << "[1] Falsche Anzahl an Argumenten.\n Syntax: [PROGRAM] [DATEIPFAD] [AUSGABE DATEIPFAD]" << newl;
         return ERR_INVALIDARGS;
     }
     
     string filepath = argv[1]; // Lese filepath von argv
+    string out_filepath = argv[2]; //Lese out_filepath von argv
     std::cout << "Dateipfad: " << bcolor.cyan << filepath << newl; //Print
+    std::cout << "Out Dateipfad: " << bcolor.cyan << out_filepath << newl; //Print
     
     // Lese Datei ein.
     ifstream file(filepath);
@@ -139,14 +146,15 @@ int main(int argc, char* argv[]) {
         std::cout << projekt_array[i].name << "; " << projekt_array[i].geld << newl;
     }
     
+    vector<schenken> schenken_vector;
     int geld_alle_projekte = 0; //Geld aller Projekte
     int letzte_geld_alle_projekte = -1; //Geld aller Projekte der vorherigen Iteration
     bool break_this_iteration = false; //Soll diese Iteration übersprungen werden?
-    for (int i = 0; i < (sizeof(projekt_array)/sizeof(*projekt_array)); i++) {
-        geld_alle_projekte += projekt_array[i].geld;
-        
-        projekt_array[i].original_stimmen = projekt_array[i].stimmen; //Speichere Stimmen vor dem Schenken 
-    }
+    //for (int i = 0; i < (sizeof(projekt_array)/sizeof(*projekt_array)); i++) {
+    //    geld_alle_projekte += projekt_array[i].geld;
+    //    
+    //    projekt_array[i].original_stimmen = projekt_array[i].stimmen; //Speichere Stimmen vor dem Schenken 
+    //}
     
     //Stimmen Algorithmus
     //For Loop verwenden Index, um auf die original Variable zugreifen zu können. Ich bin mir sicher, man kann das auch mit einem Pointer machen, ich bin mit denen aber noch zu unsicher.
@@ -183,6 +191,24 @@ int main(int argc, char* argv[]) {
                         projekt_array[schenkendes_projekt_index].schenken_amount = s;
                         projekt_array[schenkendes_projekt_index].schenken_name = beschenktes_projekt.name;
                         break_this_iteration = true;
+                        
+                        //Speichere in schenken_vector
+                        bool entry_exists_in_schenken_vector = false;
+                        for (int i = 0; i < schenken_vector.size(); i++) {
+                            schenken this_schenken = schenken_vector[i];
+                            if (this_schenken.beschenkt == beschenktes_projekt.name && this_schenken.schenkend == schenkendes_projekt.name) {
+                                schenken_vector[i].amount = s;
+                                entry_exists_in_schenken_vector = true;
+                            }
+                        }
+                        
+                        if (!entry_exists_in_schenken_vector) {
+                            schenken new_schenken;
+                            new_schenken.amount = s;
+                            new_schenken.beschenkt = beschenktes_projekt.name;
+                            new_schenken.schenkend = schenkendes_projekt.name;
+                            schenken_vector.insert(schenken_vector.end(), new_schenken);
+                        }
                     }
                     
                 }
@@ -232,5 +258,23 @@ int main(int argc, char* argv[]) {
         break_this_iteration = false;
     }
     
-    //Muss noch Datei ausgeben
+    //Datei Ausgabe
+    
+    ofstream out_file(out_filepath);
+    string out_string = "";
+    
+    for (auto i: schenken_vector) {
+        out_string += i.beschenkt + " " + i.schenkend + " " + to_string(i.amount) + "\n";
+    }
+    
+    for (auto i: projekt_array) {
+        out_string += i.name + " " + to_string(i.stimmen) + " " + to_string(i.geld) + "\n";
+    }
+    
+    std::cout << newl << out_string;
+    
+    out_file << out_string;
+    
+    out_file.close();
+
 }
