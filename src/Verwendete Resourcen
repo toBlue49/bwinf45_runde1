@@ -12,5 +12,10 @@ J2_Spendenaktion:
     [1]https://www.w3schools.com/cpp/cpp_arrays.asp
     [2]https://www.geeksforgeeks.org/cpp/how-to-convert-an-array-to-a-vector-in-cpp/
 
+A4_Computer-Pétanque:
+    [1]https://github.com/raysan5/raylib/blob/master/examples/core/core_basic_window.c
+    [2]https://www.raylib.com/examples/core/loader.html?name=core_input_mouse
+    [3]https://www.raylib.com/examples/shapes/loader.html?name=shapes_colors_palette
+
 Windows DLLs:
     https://github.com/niXman/mingw-builds-binaries/releases (C++ Libraries von mingw-w64)
