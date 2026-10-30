@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include "raymath.h"
 #include <vector>
 #include <format>
 #include <bits/stdc++.h>
@@ -12,6 +13,11 @@
 
 #define PLAYER_1 1
 #define PLAYER_2 2
+
+#define UP 0
+#define RIGHT 1
+#define DOWN 2
+#define LEFT 3
 
 bColor bcolor = bColor(); // ANSI Codes für Farbigen Text
 string newl = bcolor.reset + "\n"; // newl "new line" setzt Farbe zurück und erstellt eine neue Zeile
@@ -44,6 +50,51 @@ int get_cell_state(int x, int y) {
 //Setzt den Zellenwert von (x, y)
 void set_cell_state(int x, int y, int value) {
     cells[y][x] = value;
+}
+
+//Gibt einen Vector2 mit den Koordinaten der Zielkugel wieder.
+//Gibt (0, 0) zurück, falls die Zielkugel nicht gefunden werden konnte
+Vector2 get_zielkugel_position() {
+    Vector2 result;
+    result.x = 0;
+    result.y = 0;
+    
+    for (int cell_y = 0; cell_y < CELL_FIELD_SIZE; cell_y++) {
+        for (int cell_x = 0; cell_x < CELL_FIELD_SIZE; cell_x++) {
+            if (get_cell_state(cell_x, cell_y) == CELL_ZIELKUGEL) { //Hier ist die Zielkugel
+                result.x = cell_x;
+                result.y = cell_y;
+                return result; //Position zurückgeben
+            }
+        }
+    }
+    
+    return result; //Sonst default (0, 0) zurückgeben
+}
+
+//Gibt die Richtung der Zielkugel von (x, y) als UP, RIGHT, DOWN oder LEFT zurück
+//UP und DOWN werden vor LEFT und RIGHT getestet, bedeutet diese haben Vorrang
+//Falls nichts zutrifft wird UP zurückgegeben
+int get_zielkugel_direction(int x, int y) {
+    Vector2 diff_pos = Vector2Subtract((Vector2){(float)x ,(float)y}, (Vector2)get_zielkugel_position()); //Differenz der Positionen
+    
+    if (abs(diff_pos.y) >= abs(diff_pos.x)) { //Die vertikale Differenz ist größer
+        if (diff_pos.y > 0) {
+            return DOWN;
+        } else if (diff_pos.y < 0) { 
+            return UP;
+        }
+    } else { //Die horizontale Differenz ist größer
+        if (diff_pos.x > 0) {
+            return RIGHT;
+        } else if (diff_pos.x < 0) { 
+            return LEFT;
+        }
+    }
+    
+    //Fallback
+    cout << "Zielkugel Direction Fallback" << newl;
+    return UP;
 }
 
 void spawn_zielkugel() {
@@ -136,6 +187,45 @@ void draw_cell(int x, int y){
     }
 }
 
+Vector2 get_rand_cell_position(int x, int y, int direction) {
+    Vector2 this_pos = {(float)x, (float)y};
+    int offset_parallel = rand() % 6; //Zwischen 0, 5
+    int offset_orthogonal = rand() % 3 - 1; //Zwischen -1, 1
+    
+    
+    if (direction == UP) {
+        this_pos.y += offset_parallel;
+        this_pos.x += offset_orthogonal;
+    }
+    if (direction == RIGHT) {
+        this_pos.x -= offset_parallel;
+        this_pos.y += offset_orthogonal;
+    }
+    if (direction == DOWN) {
+        this_pos.y -= offset_parallel;
+        this_pos.x += offset_orthogonal;
+    }
+    if (direction == LEFT) {
+        this_pos.x += offset_parallel;
+        this_pos.y += offset_orthogonal;
+    }
+    
+    this_pos.x = clamp((int)this_pos.x, 0, CELL_FIELD_SIZE-1);
+    this_pos.y = clamp((int)this_pos.y, 0, CELL_FIELD_SIZE-1);
+    
+    std::cout << bcolor.cyan << "Random Cell Position: " << this_pos.x << " " << this_pos.y << " Direction: " << direction << newl;
+    
+    return this_pos;
+}
+
+void cell_clicked(int x, int y, int active_player) {
+    int zielkugel_direction = get_zielkugel_direction(x, y); //Zielkugel Richtung
+    Vector2 cell_place = get_rand_cell_position(x, y, zielkugel_direction); //Wo die Kugel platziert werden soll
+    set_cell_state(cell_place.x, cell_place.y, active_player);
+    
+    cout << bcolor.cyan << get_zielkugel_direction(x, y) << newl;
+}
+
 int main(void)
 {
     // Init
@@ -171,12 +261,11 @@ int main(void)
             DrawText(TextFormat("Mouse: %.02f, %.02f", cell_m_pos.x, cell_m_pos.y), 10, 670, 20, RAYWHITE);
             
             if (clicked_cell_state != -1 && is_valid_cell(cell_m_pos.x, cell_m_pos.y, first_move)){
-                cout << "clicked_cell_state: " << clicked_cell_state << newl;
-                set_cell_state(cell_m_pos.x, cell_m_pos.y, active_player);
+                cell_clicked(cell_m_pos.x, cell_m_pos.y, active_player);
                 
                 if (active_player == PLAYER_1) { //Switch active player.
                     active_player = PLAYER_2;
-                } else {
+                } else if (active_player == PLAYER_2) { //Switch active player.
                     active_player = PLAYER_1;
                     first_move = false; //Erst wenn der erste Spieler zum zweiten mal dran ist.
                 }
