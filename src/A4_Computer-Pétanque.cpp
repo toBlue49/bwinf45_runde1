@@ -4,6 +4,7 @@
 #include <format>
 #include <bits/stdc++.h>
 #include "bColor.hpp"
+#include "SimpleIni.h" //Siehe [5] (Verwendete Resourcen.txt)
 
 #define CELL_EMPTY 0
 #define CELL_PLAYER1 1
@@ -21,6 +22,7 @@
 
 bColor bcolor = bColor(); // ANSI Codes für Farbigen Text
 string newl = bcolor.reset + "\n"; // newl "new line" setzt Farbe zurück und erstellt eine neue Zeile
+CSimpleIniA ini;
 
 std::vector<std::vector<int>> cells = { //Alle Zellen in einem 13x13 Feld
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -127,15 +129,14 @@ Vector2 mouse_to_cell_pos(Vector2 mouse_pos) {
     }
 }
 
-//Gibt ein bool zurück, ob ein Zug auf diesem Feld gemacht werden darf.
+//Gibt ein bool zurück, ob ein Zug auf diesem Feld gemacht werden darf. (nicht zu verwechseln mit is_on_field)
 bool is_valid_cell(int x, int y, bool first_move) {
     if (get_cell_state(x, y) != CELL_EMPTY) {
         return false;
     }
     
-    
     if (first_move) { //falls first_move
-        if (x == 0 || x == 12 || y == 0 || y == 12) { //Falls Feld am Rand ist
+        if (x == 0 || x == CELL_FIELD_SIZE-1 || y == 0 || y == CELL_FIELD_SIZE-1) { //Falls Feld am Rand ist
             return true;
         } else { //Wenn nicht
             return false;
@@ -150,6 +151,15 @@ bool is_valid_cell(int x, int y, bool first_move) {
     
     //Falls aus irgendeinem Grund das oben nichts macht wird einfach false zurückgegeben
     return false;
+}
+
+//Gibt ein bool zurück, ob die Koordinate im Feld ist, oder nicht. (nicht zu verwechseln mit is_valid_cell)
+bool is_on_field(int x, int y) {
+    if (x >= 0 && x <= CELL_FIELD_SIZE-1 && y >= 0 && y <= CELL_FIELD_SIZE-1) { //Falls Feld am Rand ist
+        return true;
+    } else { //Wenn nicht
+        return false;
+    }
 }
 
 void draw_highlight_cell_hover(int x, int y, int player, bool first_move) {
@@ -187,6 +197,7 @@ void draw_cell(int x, int y){
     }
 }
 
+//Gibt die Position der Zelle zurück, wo die Kugel laden soll, nach dem zufälligen Offset
 Vector2 get_rand_cell_position(int x, int y, int direction) {
     Vector2 this_pos = {(float)x, (float)y};
     int offset_parallel = rand() % 6; //Zwischen 0, 5
@@ -218,18 +229,46 @@ Vector2 get_rand_cell_position(int x, int y, int direction) {
     return this_pos;
 }
 
+//Platziert den cell_type an der Position unter Beachtung vom Verschieben der Kugeln sind bereits da sind.
+void place_cell(int x, int y, int cell_type, int direction) {
+    if (get_cell_state(x, y) != CELL_EMPTY) { //Falls die Zielzelle nicht leer ist
+        Vector2 add_vector = {0, 0}; //Richtung in die geschoben werden soll
+        if (direction == UP) {
+            add_vector =  {0, 1};
+        }
+        if (direction == DOWN) {
+            add_vector = {0, -1};
+        }
+        if (direction == LEFT) {
+            add_vector = {1, 0};
+        }
+        if (direction == RIGHT) {
+            add_vector = {-1, 0};
+        }
+        
+        Vector2 position = {x+add_vector.x, y+add_vector.y}; //Finale Position, in welche die Zelle (x, y) hingeschoben werden soll
+        
+        if (is_on_field(position.x, position.y) == false) {
+            cout << bcolor.yellow << "Zelle (" << position.x << ", " << position.y << ") ist außerhalb des Spielfeldes. Ignoriere" << newl;
+        } else {
+            place_cell(position.x, position.y, get_cell_state(x, y), direction); //Führe diese Funktion aus, wegen Rekursion. ("Falls dort auch schon eine Kugel liegt, wird diese ebenfalls verschoben, usw.")
+        }
+    }
+    
+    set_cell_state(x, y, cell_type);
+}
+
+//Zelle wurde angeklickt
 void cell_clicked(int x, int y, int active_player) {
     int zielkugel_direction = get_zielkugel_direction(x, y); //Zielkugel Richtung
     Vector2 cell_place = get_rand_cell_position(x, y, zielkugel_direction); //Wo die Kugel platziert werden soll
-    set_cell_state(cell_place.x, cell_place.y, active_player);
-    
-    cout << bcolor.cyan << get_zielkugel_direction(x, y) << newl;
+    place_cell(cell_place.x, cell_place.y, active_player, zielkugel_direction); //Platziere die Kugel wow
 }
 
 int main(void)
-{
+{ //Basiert auf dem Code von [1] (siehe Verwendete Resourcen.txt)
     // Init
-    srand(time(0)); //Set Seed von rand() auf die Systemzeit
+    srand(time(0)); //Setze Seed von rand() auf die Systemzeit
     const int screenWidth = 670; //Screen Breite
     const int screenHeight = 700; //Screen Höhe
     
@@ -240,6 +279,11 @@ int main(void)
     
     InitWindow(screenWidth, screenHeight, "BWINF A4");
     SetTargetFPS(100);
+    
+    //Lade Settings von .ini Datei
+    ini.LoadFile("A4.ini");
+    const char *runden_char = ini.GetValue("settings", "rundenanzahl");
+    int runden = stoi(runden_char);
     
     
     // Main game loop
@@ -258,10 +302,11 @@ int main(void)
 
             ClearBackground(DARKGRAY);
             
-            DrawText(TextFormat("Mouse: %.02f, %.02f", cell_m_pos.x, cell_m_pos.y), 10, 670, 20, RAYWHITE);
+            DrawText(TextFormat("Runden übrig: %i", runden), 10, 670, 20, RAYWHITE);
             
             if (clicked_cell_state != -1 && is_valid_cell(cell_m_pos.x, cell_m_pos.y, first_move)){
                 cell_clicked(cell_m_pos.x, cell_m_pos.y, active_player);
+                runden--;
                 
                 if (active_player == PLAYER_1) { //Switch active player.
                     active_player = PLAYER_2;

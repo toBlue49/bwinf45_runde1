@@ -15,7 +15,9 @@ J2_Spendenaktion:
 A4_Computer-Pétanque:
     [1]https://github.com/raysan5/raylib/blob/master/examples/core/core_basic_window.c
     [2]https://www.raylib.com/examples/core/loader.html?name=core_input_mouse
-    [3]https://www.raylib.com/examples/shapes/loader.html?name=shapes_colors_palette
+    [3]https://www.raylib.com/examples/text/loader.html?name=text_format_text
+    [4]https://www.raylib.com/examples/shapes/loader.html?name=shapes_colors_palette
+    [5]https://github.com/brofield/simpleini
 
 Windows DLLs:
     https://github.com/niXman/mingw-builds-binaries/releases (C++ Libraries von mingw-w64)
