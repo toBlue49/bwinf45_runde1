@@ -18,6 +18,7 @@ A4_Computer-Pétanque:
     [3]https://www.raylib.com/examples/text/loader.html?name=text_format_text
     [4]https://www.raylib.com/examples/shapes/loader.html?name=shapes_colors_palette
     [5]https://github.com/brofield/simpleini
+    [6]https://www.raylib.com/examples/shapes/loader.html?name=shapes_basic_shapes
 
 Windows DLLs:
     https://github.com/niXman/mingw-builds-binaries/releases (C++ Libraries von mingw-w64)

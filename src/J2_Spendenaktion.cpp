@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
     //}
     
     //Stimmen Algorithmus
-    //For Loop verwenden Index, um auf die original Variable zugreifen zu können. Ich bin mir sicher, man kann das auch mit einem Pointer machen, ich bin mit denen aber noch zu unsicher.
+    //For Loops verwenden den Index, um auf die original Variable zugreifen zu können. Ich bin mir sicher, man kann das auch mit einem Pointer machen, ich bin mit denen aber noch zu unsicher.
     while (geld_alle_projekte > letzte_geld_alle_projekte) { //Wenn das Geld gleich ist, wie bei der vorherigen Iteration, dann sind wir fertig.
         for (int schenkendes_projekt_index = 0; schenkendes_projekt_index < (sizeof(projekt_array)/sizeof(*projekt_array)); schenkendes_projekt_index++) { //Für alle Projekte
             projekt schenkendes_projekt = projekt_array[schenkendes_projekt_index];

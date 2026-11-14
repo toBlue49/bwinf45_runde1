@@ -14,6 +14,7 @@
 
 #define PLAYER_1 1
 #define PLAYER_2 2
+#define PLAYER_NONE 3
 
 #define UP 0
 #define RIGHT 1
@@ -55,11 +56,11 @@ void set_cell_state(int x, int y, int value) {
 }
 
 //Gibt einen Vector2 mit den Koordinaten der Zielkugel wieder.
-//Gibt (0, 0) zurück, falls die Zielkugel nicht gefunden werden konnte
+//Gibt (-1, -1) zurück, falls die Zielkugel nicht gefunden werden konnte
 Vector2 get_zielkugel_position() {
     Vector2 result;
-    result.x = 0;
-    result.y = 0;
+    result.x = -1;
+    result.y = -1;
     
     for (int cell_y = 0; cell_y < CELL_FIELD_SIZE; cell_y++) {
         for (int cell_x = 0; cell_x < CELL_FIELD_SIZE; cell_x++) {
@@ -258,11 +259,74 @@ void place_cell(int x, int y, int cell_type, int direction) {
     set_cell_state(x, y, cell_type);
 }
 
+//Gibt den Spieler zurück, der dieses Spiel gewonnen hat. (PLAYER_NONE wenn unentschieden)
+int get_winning_player() {
+    Vector2 zielkugel_pos = get_zielkugel_position();
+    int player1_count = 0; //Spieler 1 Kugeln neben Zielkugel
+    int player2_count = 0; //Spieler 2 Kugeln neben Zielkugel
+    
+    //Spieler 1
+    if (get_cell_state(zielkugel_pos.x, zielkugel_pos.y+1) == CELL_PLAYER1) {
+        player1_count += 1;
+    }
+    if (get_cell_state(zielkugel_pos.x, zielkugel_pos.y-1) == CELL_PLAYER1) {
+        player1_count += 1;
+    }
+    if (get_cell_state(zielkugel_pos.x+1, zielkugel_pos.y) == CELL_PLAYER1) {
+        player1_count += 1;
+    }
+    if (get_cell_state(zielkugel_pos.x-1, zielkugel_pos.y) == CELL_PLAYER1) {
+        player1_count += 1;
+    }
+    
+    //Spieler 2
+    if (get_cell_state(zielkugel_pos.x, zielkugel_pos.y+1) == CELL_PLAYER2) {
+        player2_count += 1;
+    }
+    if (get_cell_state(zielkugel_pos.x, zielkugel_pos.y-1) == CELL_PLAYER2) {
+        player2_count += 1;
+    }
+    if (get_cell_state(zielkugel_pos.x+1, zielkugel_pos.y) == CELL_PLAYER2) {
+        player2_count += 1;
+    }
+    if (get_cell_state(zielkugel_pos.x-1, zielkugel_pos.y) == CELL_PLAYER2) {
+        player2_count += 1;
+    }
+    
+    std::cout << bcolor.cyan << "Spieler 1 Kugeln: " << player1_count << ", Spieler 2 Kugeln: " << player2_count << newl;
+    
+    if (player1_count == player2_count) {
+        return PLAYER_NONE;
+    } else if (player1_count > player2_count) {
+        return PLAYER_1;
+    } else {
+        return PLAYER_2;
+    }
+}
+
 //Zelle wurde angeklickt
 void cell_clicked(int x, int y, int active_player) {
     int zielkugel_direction = get_zielkugel_direction(x, y); //Zielkugel Richtung
     Vector2 cell_place = get_rand_cell_position(x, y, zielkugel_direction); //Wo die Kugel platziert werden soll
     place_cell(cell_place.x, cell_place.y, active_player, zielkugel_direction); //Platziere die Kugel wow
+}
+
+void draw_game_over(int player_won) {
+    DrawRectangle(100, 200, 670-100*2, 200, WHITE);
+    DrawRectangleLines(100, 200, 670-100*2, 200, GRAY);
+    
+    DrawText("Spiel vorbei!", 110, 210, 30, GRAY);
+    DrawLine(110, 245, (670-100*2)+90, 245, GRAY);
+    
+    if (player_won == PLAYER_1) {
+        DrawText("Spieler 1 hat gewonnen!", 110, 260, 20, RED);
+    } else if (player_won == PLAYER_2) {
+        DrawText("Spieler 2 hat gewonnen!", 110, 260, 20, ORANGE);
+    } else { //Unentschieden
+        DrawText("Unentschieden!", 110, 260, 20, DARKGREEN);
+    }
+    
+    DrawText("x", (670-100*2)+80, 210, 20, GRAY);
 }
 
 int main(void)
@@ -271,9 +335,11 @@ int main(void)
     srand(time(0)); //Setze Seed von rand() auf die Systemzeit
     const int screenWidth = 670; //Screen Breite
     const int screenHeight = 700; //Screen Höhe
+    bool is_game_over = false; //Ist das Spiel vorbei?
     
     int active_player = PLAYER_1; //Spieler, der gerade dran ist
-    bool first_move = true; //Ist das der erste Zug. (Dann erlaube nur Zügen am Rand)
+    bool only_on_edge = true; //Erlaube nur Züge am Rand
+    int player_won = -1; //Spieler der gewonnen hat.
     
     spawn_zielkugel();
     
@@ -292,9 +358,13 @@ int main(void)
         // Update //
         Vector2 mouse_pos = GetMousePosition(); //Maus Position
         Vector2 cell_m_pos = mouse_to_cell_pos(mouse_pos); //"Cell Mouse Position" Zellen Position
-        int clicked_cell_state = -1; //Minus eins, falls kein Click
+        int clicked_cell_state = -1; //Min us eins, falls kein Click
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             clicked_cell_state = get_cell_state(cell_m_pos.x, cell_m_pos.y);
+            
+            if (is_game_over) { if (mouse_pos.x > 550 && mouse_pos.x < 550+20 && mouse_pos.y > 210 && mouse_pos.y < 210+20) {
+                is_game_over = false; //Schließt das Game Over Fenster
+            }}
         }
         
         // Draw //
@@ -304,16 +374,22 @@ int main(void)
             
             DrawText(TextFormat("Runden übrig: %i", runden), 10, 670, 20, RAYWHITE);
             
-            if (clicked_cell_state != -1 && is_valid_cell(cell_m_pos.x, cell_m_pos.y, first_move)){
+            if (clicked_cell_state != -1 && is_valid_cell(cell_m_pos.x, cell_m_pos.y, only_on_edge)){
                 cell_clicked(cell_m_pos.x, cell_m_pos.y, active_player);
-                runden--;
                 
                 if (active_player == PLAYER_1) { //Switch active player.
                     active_player = PLAYER_2;
                 } else if (active_player == PLAYER_2) { //Switch active player.
                     active_player = PLAYER_1;
-                    first_move = false; //Erst wenn der erste Spieler zum zweiten mal dran ist.
+                    runden--; //nachdem beide Spieler dran waren, nächste Runde
+                    
+                    if (runden == 0) {
+                        is_game_over = true;
+                        player_won = get_winning_player();
+                    }
                 }
+                
+                
             }
             
             
@@ -329,7 +405,11 @@ int main(void)
                 }
             }
             
-            draw_highlight_cell_hover(cell_m_pos.x, cell_m_pos.y, active_player, first_move);
+            draw_highlight_cell_hover(cell_m_pos.x, cell_m_pos.y, active_player, only_on_edge);
+            
+            if (is_game_over) {
+                draw_game_over(player_won);
+            }
             
         EndDrawing();
     }
