@@ -1,0 +1,8 @@
+Ich hab versucht ein Windows Build zu compilen, aber es funktioniert nich und ich hab auch keine Lösung im Internet dazu gefunden. Deshalb kann ich leider kein Windows-Build für die Aufgabe anbieten.
+
+(Das ist die Fehlermeldung)
+C:\Users\vm\Desktop\source\A4_Computer-Pétanque.cpp:420:26: error: cannot convert 'const char*' to 'HDC' {aka 'HDC__*'}
+  420 |                 DrawText("Spieler 2", 280, 670, 20, ORANGE);
+      |                          ^~~~~~~~~~~
+      |                          |
+      |                          const char*

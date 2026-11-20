@@ -1,5 +1,5 @@
-#include "raylib.h"
-#include "raymath.h"
+#include "raylib.h" //Siehe [7] (Verwendete Resourcen.txt)
+#include "raymath.h" //Siehe [7] (Verwendete Resourcen.txt)
 #include <vector>
 #include <format>
 #include <bits/stdc++.h>
@@ -10,6 +10,7 @@
 #define CELL_PLAYER1 1
 #define CELL_PLAYER2 2
 #define CELL_ZIELKUGEL 3
+
 #define CELL_FIELD_SIZE 13
 
 #define PLAYER_1 1
@@ -40,6 +41,8 @@ std::vector<std::vector<int>> cells = { //Alle Zellen in einem 13x13 Feld
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 };
+bool is_game_over = false; //Ist das Spiel vorbei?
+int player_won = -1; //Spieler der gewonnen hat.
 
 //Gibt den Zellenwert von (x, y) zurück
 int get_cell_state(int x, int y) {
@@ -100,9 +103,14 @@ int get_zielkugel_direction(int x, int y) {
     return UP;
 }
 
-void spawn_zielkugel() {
+void spawn_zielkugel(Vector2 in) {
     int x = rand() % 13;
     int y = rand() % 13;
+    
+    if (in != Vector2({-1, -1})) {
+        x = in.x;
+        y = in.y;
+    }
     
     std::cout << bcolor.cyan << "Zielkugel Pos: " << x << ", " << y << newl;
     
@@ -250,7 +258,15 @@ void place_cell(int x, int y, int cell_type, int direction) {
         Vector2 position = {x+add_vector.x, y+add_vector.y}; //Finale Position, in welche die Zelle (x, y) hingeschoben werden soll
         
         if (is_on_field(position.x, position.y) == false) {
+            //Ist es die Zielkugel?
+            if (get_cell_state(x, y) == CELL_ZIELKUGEL) {
+                //Unentschieden
+                is_game_over = true;
+                player_won = PLAYER_NONE;
+            }
+            
             cout << bcolor.yellow << "Zelle (" << position.x << ", " << position.y << ") ist außerhalb des Spielfeldes. Ignoriere" << newl;
+            
         } else {
             place_cell(position.x, position.y, get_cell_state(x, y), direction); //Führe diese Funktion aus, wegen Rekursion. ("Falls dort auch schon eine Kugel liegt, wird diese ebenfalls verschoben, usw.")
         }
@@ -335,22 +351,26 @@ int main(void)
     srand(time(0)); //Setze Seed von rand() auf die Systemzeit
     const int screenWidth = 670; //Screen Breite
     const int screenHeight = 700; //Screen Höhe
-    bool is_game_over = false; //Ist das Spiel vorbei?
     
     int active_player = PLAYER_1; //Spieler, der gerade dran ist
     bool only_on_edge = true; //Erlaube nur Züge am Rand
-    int player_won = -1; //Spieler der gewonnen hat.
-    
-    spawn_zielkugel();
+    //is_game_over und player_won wurden weiter oben definiert, um global erreichbar zu sein.
     
     InitWindow(screenWidth, screenHeight, "BWINF A4");
     SetTargetFPS(100);
     
     //Lade Settings von .ini Datei
     ini.LoadFile("A4.ini");
+    
     const char *runden_char = ini.GetValue("settings", "rundenanzahl");
     int runden = stoi(runden_char);
     
+    const char *zielkugel_x_char = ini.GetValue("settings", "zielkugel_X");
+    const char *zielkugel_y_char = ini.GetValue("settings", "zielkugel_Y");
+    Vector2 zielkugel_pos = {stof(zielkugel_x_char), stof(zielkugel_y_char)};
+    
+    //Zielkugel
+    spawn_zielkugel(zielkugel_pos);
     
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
@@ -358,7 +378,7 @@ int main(void)
         // Update //
         Vector2 mouse_pos = GetMousePosition(); //Maus Position
         Vector2 cell_m_pos = mouse_to_cell_pos(mouse_pos); //"Cell Mouse Position" Zellen Position
-        int clicked_cell_state = -1; //Min us eins, falls kein Click
+        int clicked_cell_state = -1; //Minus eins, falls kein Click
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             clicked_cell_state = get_cell_state(cell_m_pos.x, cell_m_pos.y);
             

@@ -189,7 +189,6 @@ int main(int argc, char* argv[]) {
                         //Speichere in schenken_amount und schenken_name
                         projekt_array[schenkendes_projekt_index].schenken_amount = s;
                         projekt_array[schenkendes_projekt_index].schenken_name = beschenktes_projekt.name;
-                        break_this_iteration = true;
                         
                         //Speichere in schenken_vector
                         bool entry_exists_in_schenken_vector = false;
@@ -208,6 +207,8 @@ int main(int argc, char* argv[]) {
                             new_schenken.schenkend = schenkendes_projekt.name;
                             schenken_vector.insert(schenken_vector.end(), new_schenken);
                         }
+                        
+                        break_this_iteration = true;
                     }
                     
                 }
@@ -222,7 +223,6 @@ int main(int argc, char* argv[]) {
             }
         }
         
-        //Scheinbar wird das schenken nicht richtig gesetzt. bestimmt weil ich einen pointer brauche. mal schauen
         //Anwenden des Schenkens erst nach allen Loops
         projekt* projekt_ptr;
         for (int _index = 0; _index < (sizeof(projekt_array)/sizeof(*projekt_array)); _index++) {
@@ -276,4 +276,5 @@ int main(int argc, char* argv[]) {
     
     out_file.close();
 
+    return 0;
 }
