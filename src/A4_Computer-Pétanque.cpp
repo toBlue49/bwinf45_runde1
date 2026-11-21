@@ -43,6 +43,7 @@ std::vector<std::vector<int>> cells = { //Alle Zellen in einem 13x13 Feld
 };
 bool is_game_over = false; //Ist das Spiel vorbei?
 int player_won = -1; //Spieler der gewonnen hat.
+bool debug = false;
 
 //Gibt den Zellenwert von (x, y) zurück
 int get_cell_state(int x, int y) {
@@ -211,6 +212,11 @@ Vector2 get_rand_cell_position(int x, int y, int direction) {
     Vector2 this_pos = {(float)x, (float)y};
     int offset_parallel = rand() % 6; //Zwischen 0, 5
     int offset_orthogonal = rand() % 3 - 1; //Zwischen -1, 1
+    
+    if (debug) {
+        offset_orthogonal = 0;
+        offset_parallel = 0;
+    }
     
     
     if (direction == UP) {
@@ -385,6 +391,11 @@ int main(void)
             if (is_game_over) { if (mouse_pos.x > 550 && mouse_pos.x < 550+20 && mouse_pos.y > 210 && mouse_pos.y < 210+20) {
                 is_game_over = false; //Schließt das Game Over Fenster
             }}
+        }
+        
+        if (IsKeyPressed(KEY_F3)) { //Toggle Debug Features
+            only_on_edge = !only_on_edge;
+            debug = !debug;
         }
         
         // Draw //
